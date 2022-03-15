@@ -1,0 +1,24 @@
+body{
+    background-color: lightgray;
+}
+
+#map{
+    border-right: 1px solid black;
+    width: 70%;
+    left: 0;
+}
+
+#param{
+
+    width: 30%;
+    right: 0;
+}
+
+.split {
+    height: 100%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    overflow-x: hidden;
+    padding-top: 20px;
+  }
