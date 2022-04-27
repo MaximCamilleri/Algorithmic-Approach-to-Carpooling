@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+
+        <link href="{{ url_for('static' ,filename='styles.css') }}" rel="stylesheet" />
+
+        <!-- map -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin=""></script>
+
+        <script type="text/javascript" src="{{ url_for('static' ,filename='MovingMarker.js') }}"></script>
+
+        <!-- jQuery -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+        <!-- polyline -->
+        <script src="https://cdn.jsdelivr.net/npm/@mapbox/polyline@1.1.1/src/polyline.min.js"></script>
+
+    </head>
+    <body>
+        <div class = "split" id = "map">
+            
+        </div>
+        <script src="{{ url_for('static' ,filename='map.js') }}"></script>
+        <div class = "split" id = "param">
+            <table>
+                <tr>
+                    <th>Requests/min</th>
+                    <td><input type="range"></td>
+                </tr>
+                <tr>
+                    <th>Total Cars</th>
+                    <td><input type="range"></td>
+                </tr>
+                <tr>
+                    <td><input type="button" id = "getCars" value = "Get Cars" onclick="getCars()"></td>
+                </tr>
+                <tr>
+                    <td><input type="button" id = "getStartPoints" value = "Get Pickup Locations" onclick="getStartPoints()"></td>
+                </tr>
+                <tr>
+                    <td><input type="button" id = "getEndPoints" value = "Get Drop off locations" onclick="getEndPoints()"></td>
+                </tr>
+                <tr>
+                    <td><input type="button" id = "getPolyline" value = "Get Polyline" onclick="getPolyline()"></td>
+                </tr>
+                <tr>
+                    <td><input type="button" id = "moveCar" value = "Move Car" onclick="moveCar()"></td>
+                </tr>
+                <tr>
+                    <td><input type="button" id = "start" value = "Start" onclick="start()"></td>
+                </tr>
+            </table>
+           
+        </div>
+    </body>
+</html>
