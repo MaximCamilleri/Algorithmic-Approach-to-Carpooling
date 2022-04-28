@@ -1,4 +1,4 @@
-#from termios import FF1
+from termios import FF1
 from flask import Flask, render_template, Response
 import json
 from pandas import reset_option
