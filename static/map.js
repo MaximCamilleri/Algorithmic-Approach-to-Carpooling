@@ -1,5 +1,8 @@
 // Creating the map
 var map = L.map('map').setView([35.91339549900495, 14.408547418056258], 11);
+var cars = new Array();
+polyPoints = new Array();
+var nextPolyPoint = 1;
 
 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -11,49 +14,119 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 }).addTo(map);
 
 
+
 // Creating map icon presets 
 var car = L.icon({
-    iconUrl: 'Images/carIcon.png',
+    iconUrl: "../static/images/car.png",
     //shadowUrl: 'leaf-shadow.png',
 
     iconSize:     [38, 95], // size of the icon
     shadowSize:   [50, 64], // size of the shadow
-    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 62],  // the same for the shadow
-    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+    iconAnchor:   [19, 47.5], // point of the icon which will correspond to marker's location
+    // shadowAnchor: [4, 62],  // the same for the shadow
+    // popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
 });
 
+const selectElement = document.querySelector('.preset');
+console.log(selectElement);
 
+selectElement.addEventListener('change',  (event) => {
+    console.log(event.target.value);
 
-var cars = new Array();
-polyPoints = new Array();
+    if(event.target.value == 'preset1'){
+        preset1()
+    }else if(event.target.value == 'preset2'){
 
-function moveCar(){
-    cars[0].start();
+    }else if(event.target.value == 'preset3'){
+
+    }
+})
+
+function preset1(){
+    var carLoc = [[14.513809277460041,35.89897453256716]];
+    var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
+                [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
+
+    $("#p1").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    var r = $.ajax({ 
+        url: '/loadSet', 
+        type:'post',
+        data: {car:carLoc, trip:trips},
+     });
+
+     r.done(function(value){
+        for(var i = 0; i < value.length; i++){
+            var l = polyline.decode(value[i])
+            L.polyline(l, {color: 'red'}).addTo(map);
+            for(var j = 0; j < l.length; j++){
+                polyPoints.push(l[j]);
+            }
+        }
+
+        var timings = Array(polyPoints.length).fill(700)
+        for(var i = 0; i < carLoc.length; i++){
+            var degree = getHeading(polyPoints);
+            var marker = L.Marker.movingMarker(polyPoints, timings, {
+                autostart: false,
+                rotation: degree,
+            });
+            marker.setIcon(car);
+            map.addLayer(marker);
+            cars.push(marker);
+        }
+
+        for(var i = 0; i < trips.length; i++){
+            var marker = new L.Marker(trips[i][0]);
+            map.addLayer(marker);
+            var marker = new L.Marker(trips[i][1]);
+            map.addLayer(marker);
+        }
+     });
 }
 
-function getCars(){
+// polpulating the map
+function moveCar(){
+    cars[0].start();
+    
+    setInterval( function() {
+        cars[0].options.rotation = getHeading(polyPoints);
+    }, 700);
+}
+
+function getHeading(polyPoints){
+    var theta = Math.atan2(polyPoints[nextPolyPoint][1] - polyPoints[nextPolyPoint-1][1], polyPoints[nextPolyPoint][0] - polyPoints[nextPolyPoint-1][0]) * 180 / Math.PI;;
+    nextPolyPoint += 1;
+    return theta;
+}
+
+function getCars(degree){
+    console.log(degree);
     var value = JSON.parse($.ajax({ 
         url: '/getCars', 
         async: false
      }).responseText);
+
+     var timings = Array(polyPoints.length).fill(700)
+
      for(var i = 0; i < value.length; i++){
-         console.log(polyPoints[0][0])
-        var marker = L.Marker.movingMarker(polyPoints, [500] * 100, {
-            autostart: false
+        var marker = L.Marker.movingMarker(polyPoints, timings, {
+            autostart: false,
+            rotation: degree,
         });
+        marker.setIcon(car);
         map.addLayer(marker);
-        console.log(marker._leaflet_id);
         cars.push(marker);
     }
 }
 
 function getStartPoints(){
+
     var value = JSON.parse($.ajax({ 
         url: '/getStartPoints', 
         async: false
      }).responseText);
      for(var i = 0; i < value.length; i++){
+        console.log("test: "+value[i])
         var marker = new L.Marker(value[i]).addTo(map);
     }
 }
@@ -64,7 +137,6 @@ function getEndPoints(){
         async: false
      }).responseText);
      for(var i = 0; i < value.length; i++){
-         console.log(value[i])
         var marker = new L.Marker(value[i]).addTo(map);
     }
 }
@@ -89,49 +161,6 @@ function start(){
     getPolyline();
     getEndPoints();
     getStartPoints();
-    getCars();
+    var d = getHeading(polyPoints);
+    getCars(d);
 }
-
-// Creating functions for finding random location in malta
-// function randomLocation(xUpperBound, yUpperBound, xLowerBound, yLowerBound){
-//     var onLand = true;
-//     do{
-//         randomLoc = [((Math.random() * (xUpperBound - xLowerBound)) + xLowerBound), ((Math.random() * (yUpperBound - yLowerBound)) + yLowerBound)];
-//         //console.log(randomLoc);
-
-//     }while(onLand == false);
-
-//     return randomLoc;
-// };
-
-// function clearMarkers(markerList, map){
-//     for(var i = 0; i < markerList.length; i++){
-//         map.removeLayer(markerList[i]);
-//     }
-// };
-
-// var markers = new Array();
-// function onMapClick(e) {
-        
-//     var marker = new L.Marker(e.latlng, {draggable:true});
-//     map.addLayer(marker);
-   
-//     markers[marker._leaflet_id] = marker;
-
-//     $.getJSON('http://maps.googleapis.com/maps/api/geocode/json?latlng=' + marker._latlng.lat + ',' + marker._latlng.lng + '&sensor=false', function(data) {
-//          marker.bindPopup(data.results[0].geometry.location_type).openPopup();
-        
-//     });
-
-//     $('#overlay > ul').append('<li>Marker '+ marker._leaflet_id + ' - <a href="#" class="remove" id="' + marker._leaflet_id + '">remove</a></li>');
-// };
-
-// // Implementation 
-
-// // topLeft = [36.102118268621126, 14.166972272120852]
-// // bottomRight = [35.7958362636939, 14.581019484501565]
-
-// // loc = randomLocation(topLeft, bottomRight);
-// //     markerList.push(L.marker([loc[0], loc[1]]).addTo(map));
-
-// map.on('click', onMapClick);

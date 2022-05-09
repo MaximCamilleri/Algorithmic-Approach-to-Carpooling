@@ -27,37 +27,30 @@
         <div class = "split" id = "map">
             
         </div>
-        <script src="{{ url_for('static' ,filename='map.js') }}"></script>
         <div class = "split" id = "param">
             <table>
-                <tr>
-                    <th>Requests/min</th>
-                    <td><input type="range"></td>
+                <tr id="p1">
+                    <label for="preset">Preset: 
+                        <select name="preset" class="preset">
+                            <option value="None" selected="selected">None</option>
+                            <option value="preset1">Preset 1</option>
+                            <option value="preset2">Preset 2</option>
+                            <option value="preset3">Preset 3</option>
+                        </select>
+                    </label>
                 </tr>
                 <tr>
-                    <th>Total Cars</th>
-                    <td><input type="range"></td>
-                </tr>
-                <tr>
-                    <td><input type="button" id = "getCars" value = "Get Cars" onclick="getCars()"></td>
-                </tr>
-                <tr>
-                    <td><input type="button" id = "getStartPoints" value = "Get Pickup Locations" onclick="getStartPoints()"></td>
-                </tr>
-                <tr>
-                    <td><input type="button" id = "getEndPoints" value = "Get Drop off locations" onclick="getEndPoints()"></td>
-                </tr>
-                <tr>
-                    <td><input type="button" id = "getPolyline" value = "Get Polyline" onclick="getPolyline()"></td>
+                    <td><input type="button" id = "start" value = "Setup" onclick="start()"></td>
                 </tr>
                 <tr>
                     <td><input type="button" id = "moveCar" value = "Move Car" onclick="moveCar()"></td>
                 </tr>
                 <tr>
-                    <td><input type="button" id = "start" value = "Start" onclick="start()"></td>
+                    <td><input type="button" id = "moveCar" value = "Rotate" onclick="test()"></td>
                 </tr>
             </table>
-           
         </div>
+        <script src="{{ url_for('static' ,filename='map.js') }}"></script>
     </body>
 </html>
+

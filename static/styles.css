@@ -22,3 +22,7 @@ body{
     overflow-x: hidden;
     padding-top: 20px;
   }
+
+  .car {
+      border: solid 1px white;
+  }
