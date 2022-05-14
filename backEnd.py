@@ -1,5 +1,6 @@
 from termios import FF1
-from flask import Flask, render_template, Response
+from tracemalloc import start
+from flask import Flask, render_template, Response, jsonify, request
 import json
 from pandas import reset_option
 import random
@@ -219,14 +220,14 @@ def tabuSearch(graph, iterations, tabuSize, s):
 
 # Testing Setup
 pickupNetwork = graph()
-# enter coords as long, lat
+# # enter coords as long, lat
 pickupNetwork.addCar([14.513809277460041, 35.89897453256716]) # car - valletta
 pickupNetwork.addTrip([14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]) # trip - Mosta to imdina
 pickupNetwork.addTrip([14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]) # trip - Marsa to Valletta
 
 def runTabu(graph):
-    s = initSolution(pickupNetwork)
-    bestSolution, bestCost = tabuSearch(graph, 500000, 7, s)
+    s = initSolution(graph)
+    bestSolution, bestCost = tabuSearch(graph, 5000, 7, s)
 
     return bestSolution
 
@@ -271,6 +272,38 @@ def getPolyline():
     for x in range(1, len(bestSolution)):
         polylines.append(pickupNetwork.getEdgeFromEdgeNodes(bestSolution[x-1], bestSolution[x]).polyLine)
     return Response(json.dumps(polylines), mimetype='application/json')
+
+@app.route("/loadSet", methods=["Post", "GET"])
+def loadSet():
+    pickupNetwork = graph()
+
+    cars = request.values.getlist('car[0][]')
+    carCounter = 0
+    while cars:
+        cars = request.values.getlist('car['+ str(carCounter) +'][]')
+        if cars:
+            pickupNetwork.addCar([cars[0], cars[1]])
+            carCounter += 1
+
+    trips = request.values.getlist('trip[0][0][]')
+    tripCounter = 0
+    while trips:
+        trips2 = request.values.getlist('trip['+ str(tripCounter) +'][1][]')
+        pickupNetwork.addTrip([trips[0], trips[1]], [trips2[0], trips2[1]])
+        tripCounter += 1
+        trips = request.values.getlist('trip['+ str(tripCounter) +'][0][]')
+    
+    solution = runTabu(pickupNetwork)
+
+    print(solution)
+
+    polylines = []
+    for x in range(1, len(solution)):
+        polylines.append(pickupNetwork.getEdgeFromEdgeNodes(solution[x-1], solution[x]).polyLine)
+
+    return Response(json.dumps(polylines), mimetype='application/json')
+    
+
 
 if __name__ == "__main__":
     app.run(debug = True, host = '0.0.0.0', port=8000)

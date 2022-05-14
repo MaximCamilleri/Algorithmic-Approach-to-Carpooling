@@ -302,3 +302,31 @@ L.Marker.MovingMarker = L.Marker.extend({
 L.Marker.movingMarker = function (latlngs, duration, options) {
     return new L.Marker.MovingMarker(latlngs, duration, options);
 };
+
+function markerOptions(size, heading) {
+    return {
+      rotation: heading
+    }
+  }
+
+(function() {
+// Save original method before overwriting it below.
+const _setPosOriginal = L.Marker.prototype._setPos
+
+L.Marker.addInitHook(function() {
+    const anchor = this.options.icon.options.iconAnchor
+    this.options.rotationOrigin = anchor ? `${anchor[0]}px ${anchor[1]}px` : 'center center'
+})
+
+L.Marker.include({
+    // _setPos is called when update() is called, e.g. on setLatLng()
+    _setPos: function(pos) {
+    _setPosOriginal.call(this, pos)
+    if (this.options.rotation) this._rotate()
+    },
+    _rotate: function() {
+    this._icon.style[`${L.DomUtil.TRANSFORM}Origin`] = this.options.rotationOrigin
+    this._icon.style[L.DomUtil.TRANSFORM] += ` rotate(${this.options.rotation}deg)`
+    }
+})
+})()  
