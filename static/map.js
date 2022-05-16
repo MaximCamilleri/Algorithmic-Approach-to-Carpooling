@@ -13,19 +13,30 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
     accessToken: 'pk.eyJ1IjoibWF4aWJhciIsImEiOiJja2lka2R3Nzcxazh1MnJsYjlxYzh5bHY1In0.Oc4baw7Ru9zOkPoR7czzng'
 }).addTo(map);
 
-
-
 // Creating map icon presets 
 var car = L.icon({
     iconUrl: "../static/images/car.png",
-    //shadowUrl: 'leaf-shadow.png',
 
     iconSize:     [38, 95], // size of the icon
-    shadowSize:   [50, 64], // size of the shadow
     iconAnchor:   [19, 47.5], // point of the icon which will correspond to marker's location
-    // shadowAnchor: [4, 62],  // the same for the shadow
-    // popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
 });
+
+var pickup = L.AwesomeMarkers.icon({
+    icon: "arrow-up-outline",
+    markerColor: 'blue'
+});
+
+var drowoff = L.AwesomeMarkers.icon({
+    icon: "arrow-down-outline",
+    markerColor: 'red'
+});
+
+var redMarker = L.AwesomeMarkers.icon({
+    icon: 'arrow-up-outline',
+    markerColor: 'red'
+  });
+
+
 
 const selectElement = document.querySelector('.preset');
 console.log(selectElement);
@@ -42,12 +53,40 @@ selectElement.addEventListener('change',  (event) => {
     }
 })
 
+
 function preset1(){
     var carLoc = [[14.513809277460041,35.89897453256716]];
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
                 [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
-
     $("#p1").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    getData(carLoc, trips)
+    
+}
+
+function preset2(){
+    var carLoc = [[14.513809277460041,35.89897453256716]];
+    var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
+                [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
+    $("#p1").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    getData(carLoc, trips)
+}
+
+function preset3(){
+    var carLoc = [[14.513809277460041,35.89897453256716]];
+    var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
+                [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
+    $("#p1").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    getData(carLoc, trips)
+}
+
+function getData(carLoc, trips){
+    for(var i = 0; i < trips.length; i++){
+        var marker = new L.Marker([trips[i][0][1], trips[i][0][0]], {icon: pickup});
+        map.addLayer(marker);
+        var marker = new L.Marker([trips[i][1][1], trips[i][1][0]], {icon: drowoff});
+        map.addLayer(marker);
+    }
+
     var r = $.ajax({ 
         url: '/loadSet', 
         type:'post',
@@ -73,13 +112,6 @@ function preset1(){
             marker.setIcon(car);
             map.addLayer(marker);
             cars.push(marker);
-        }
-
-        for(var i = 0; i < trips.length; i++){
-            var marker = new L.Marker(trips[i][0]);
-            map.addLayer(marker);
-            var marker = new L.Marker(trips[i][1]);
-            map.addLayer(marker);
         }
      });
 }
