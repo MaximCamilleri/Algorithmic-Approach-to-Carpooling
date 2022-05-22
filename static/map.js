@@ -54,35 +54,39 @@ var drowoff = L.AwesomeMarkers.icon({
     markerColor: 'red'
 });
 
+//getting data from form
+function getInputs(){
+    var preset = document.getElementById('preset').value;
+    var algorithm = document.getElementById('algorithm').value;
+    var iterations = document.getElementById('iterations').value;
+    callPreset(preset, algorithm, iterations)
+}
+
 // picking a preset
-const selectElement = document.querySelector('.preset');
-console.log(selectElement);
-
-selectElement.addEventListener('change',  (event) => {
-    console.log(event.target.value);
-
-    if(event.target.value == 'preset1'){
-        preset1()
-    }else if(event.target.value == 'preset2'){
-        preset2()
-    }else if(event.target.value == 'preset3'){
-        preset3()
+function callPreset(preset, algorithm, iterations){
+    if(preset == 'preset1'){
+        preset1(iterations)
+    }else if(preset == 'preset2'){
+        preset2(iterations)
+    }else if(preset == 'preset3'){
+        preset3(iterations)
     }
-})
+}
+
 
 // preset 1
-function preset1(){
+function preset1(iterations){
     clearMap();
     var carLoc = [[14.513809277460041,35.89897453256716]];
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
                 [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
-    $("#p1").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
-    getData(carLoc, trips)
+    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    getData(carLoc, trips, iterations)
     
 }
 
 // preset 2
-function preset2(){
+function preset2(iterations){
     clearMap();
     var carLoc = [[14.373826965980765, 35.88552234910637]];
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]], // Mosta to mdina
@@ -94,25 +98,25 @@ function preset2(){
                 [[14.432798599308622, 35.846482945229674], [14.480448112126183, 35.8215269171298]],   // Siggiewi to Zurrieq
                 [[14.480448112126183, 35.8215269171298], [14.432798599308622, 35.846482945229674]],   // Zurrieq to siggiewi
                 [[14.349747452527506, 35.952589620545496], [14.510671636760655, 35.88200443585789]]]; // Mellieha to Paola
-    $("#p1").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
-    getData(carLoc, trips)
+    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    getData(carLoc, trips, iterations)
 }
 
 // preset 3
-function preset3(){
+function preset3(iterations){
     clearMap();
     console.log('test')
     var carLoc = [[14.513809277460041,35.89897453256716]];
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
                 [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
-    $("#p1").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
-    getData(carLoc, trips)
+    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    getData(carLoc, trips, iterations)
 }
 
 // * gets the polyline from the python
 // * draws the pickups and drop offs
 // * draws the cars
-function getData(carLoc, trips){
+function getData(carLoc, trips, iterations){
     for(var i = 0; i < trips.length; i++){
         var marker = new L.Marker([trips[i][0][1], trips[i][0][0]], {icon: pickup});
         markers.push(marker);
@@ -126,7 +130,7 @@ function getData(carLoc, trips){
     var r = $.ajax({ 
         url: '/loadSet', 
         type:'post',
-        data: {car:carLoc, trip:trips}
+        data: {car:carLoc, trip:trips, iter:iterations}
      });
 
      r.done(function(value){
@@ -173,7 +177,7 @@ function clearPolyLines(){
 }
 
 function clearTable(){
-    $("#p1").empty();
+    $("#data").empty();
 }
 
 function clearMap(){

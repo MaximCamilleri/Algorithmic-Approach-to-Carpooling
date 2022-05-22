@@ -224,13 +224,13 @@ pickupNetwork.addCar([14.513809277460041, 35.89897453256716]) # car - valletta
 pickupNetwork.addTrip([14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]) # trip - Mosta to imdina
 pickupNetwork.addTrip([14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]) # trip - Marsa to Valletta
 
-def runTabu(graph):
+def runTabu(graph, iterations):
     s = initSolution(graph)
-    bestSolution, bestCost = tabuSearch(graph, 5000, 7, s)
+    bestSolution, bestCost = tabuSearch(graph, int(iterations), 7, s)
 
     return bestSolution
 
-bestSolution = runTabu(pickupNetwork)
+bestSolution = runTabu(pickupNetwork, 5000)
 
 
 
@@ -292,9 +292,8 @@ def loadSet():
         tripCounter += 1
         trips = request.values.getlist('trip['+ str(tripCounter) +'][0][]')
     
-    solution = runTabu(pickupNetwork)
-
-    print(solution)
+    iterations = request.values.get('iter')
+    solution = runTabu(pickupNetwork, iterations)
 
     polylines = []
     for x in range(1, len(solution)):

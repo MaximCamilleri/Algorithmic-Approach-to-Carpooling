@@ -41,25 +41,33 @@
         </div>
         <div class = "split" id = "param">
             <table>
-                <tr id="p1">
-                    <label for="preset">Preset: 
-                        <select name="preset" class="preset">
-                            <option value="None" selected="selected">None</option>
-                            <option value="preset1">Preset 1</option>
-                            <option value="preset2">Preset 2</option>
-                            <option value="preset3">Preset 3</option>
-                        </select>
-                    </label>
-                </tr>
-                <tr>
-                    <td><input type="button" id = "start" value = "Setup" onclick="start()"></td>
-                </tr>
-                <tr>
-                    <td><input type="button" id = "moveCar" value = "Move Car" onclick="moveCar()"></td>
-                </tr>
-                <tr>
-                    <td><input type="button" id = "moveCar" value = "Rotate" onclick="test()"></td>
-                </tr>
+                <form action="">
+                    <tr id="p1">
+                        <td>
+                            <label for="preset">Preset: 
+                                <select name="preset" class="preset" id="preset">
+                                    <option value="None" selected="selected">None</option>
+                                    <option value="preset1">Preset 1</option>
+                                    <option value="preset2">Preset 2</option>
+                                    <option value="preset3">Preset 3</option>
+                                </select>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr id="p2">
+                        <td>
+                            <label for="algorithm">Algorithm: 
+                                <select name="algorithm" class="algorithm" id="algorithm">
+                                    <option value="None" selected="selected">None</option>
+                                    <option value="tabu">Tabu Search</option>
+                                </select>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr><td>Number of iterations: <input type="number" id="iterations" name="iterations" min="1"></td></tr>
+                    <tr><td><input type="button" value="submit" onClick="getInputs();"></td></tr>
+                </form>
+                <tr><td id = "data"></td></tr>
             </table>
         </div>
         <script src="{{ url_for('static' ,filename='map.js') }}"></script>
