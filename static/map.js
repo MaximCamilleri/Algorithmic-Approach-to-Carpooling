@@ -28,6 +28,16 @@ loading.onAdd = function(map) {
 }
 loading.addTo(map);
 
+// Creating random colour
+function randColour(){
+    var colour;
+    var r = Math.floor(Math.random() * 255);
+    var g = Math.floor(Math.random() * 255);
+    var b = Math.floor(Math.random() * 255);
+    colour= "rgb("+r+" ,"+g+","+ b+")"; 
+    return colour;
+}
+
 // loading image
 $(document).ajaxStart(function() {
     $(".loadingImage").show();
@@ -88,7 +98,9 @@ function preset1(iterations){
 // preset 2
 function preset2(iterations){
     clearMap();
-    var carLoc = [[14.373826965980765, 35.88552234910637]];
+    var carLoc = [[14.373826965980765, 35.88552234910637],
+                  [14.423235598020154, 35.91419450996914],
+                  [14.488425821564382, 35.88613649037252]];
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]], // Mosta to mdina
                 [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]],    // Marsa to Valletta
                 [[14.349747452527506, 35.952589620545496], [14.488425821564382, 35.88613649037252]],  // Mellieha to Hamrun
@@ -98,15 +110,15 @@ function preset2(iterations){
                 [[14.432798599308622, 35.846482945229674], [14.480448112126183, 35.8215269171298]],   // Siggiewi to Zurrieq
                 [[14.480448112126183, 35.8215269171298], [14.432798599308622, 35.846482945229674]],   // Zurrieq to siggiewi
                 [[14.349747452527506, 35.952589620545496], [14.510671636760655, 35.88200443585789]]]; // Mellieha to Paola
-    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
+    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Mosta</td><td>Mdina</td></tr><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mellieha</td><td>Hamrun</td></tr><tr><td>St Pauls bay</td><td>Mdina</td></tr><tr><td>Valletta</td><td>St Pauls bay</td></tr><tr><td>Qormi</td><td>Humrun</td></tr><tr><td>Siggiewi</td><td>Zurrieq</td></tr><tr><td>Zurrieq</td><td>Siggiewi</td></tr><tr><td>Mellieha</td><td>Paola</td></tr></table>");
     getData(carLoc, trips, iterations)
 }
 
 // preset 3
 function preset3(iterations){
     clearMap();
-    console.log('test')
-    var carLoc = [[14.513809277460041,35.89897453256716]];
+    var carLoc = [[14.373826965980765, 35.88552234910637]];
+    
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
                 [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
     $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
@@ -134,18 +146,27 @@ function getData(carLoc, trips, iterations){
      });
 
      r.done(function(value){
-        for(var i = 0; i < value.length; i++){
-            var l = polyline.decode(value[i])
-            polyLines.push(L.polyline(l, {color: 'red'}).addTo(map));
-            for(var j = 0; j < l.length; j++){
-                polyPoints.push(l[j]);
+        var count = Object.keys(value).length -1;
+        for(var k = 0; k < count; k++){
+            p = [];
+            colour = randColour();
+            for(var i = 0; i < value[k].length; i++){
+                var l = polyline.decode(value[k][i])
+                polyLines.push(L.polyline(l, {color: colour}).addTo(map));
+                for(var j = 0; j < l.length; j++){
+                    p.push(l[j]);
+                }
             }
+            polyPoints.push(p);
         }
+
+        console.log(polyPoints);
+        
 
         var timings = Array(polyPoints.length).fill(700)
         for(var i = 0; i < carLoc.length; i++){
-            var degree = getHeading(polyPoints);
-            var marker = L.Marker.movingMarker(polyPoints, timings, {
+            var degree = getHeading(polyPoints[i]);
+            var marker = L.Marker.movingMarker(polyPoints[i], timings, {
                 autostart: false,
                 rotation: degree,
             });
@@ -184,7 +205,6 @@ function clearMap(){
     clearCars();
     clearMarkers();
     clearPolyLines();
-    clearTable();
 }
 
 // polpulating the map

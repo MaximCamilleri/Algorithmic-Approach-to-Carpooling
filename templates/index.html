@@ -54,6 +54,7 @@
                             </label>
                         </td>
                     </tr>
+                    <tr><td id = "data"></td></tr>
                     <tr id="p2">
                         <td>
                             <label for="algorithm">Algorithm: 
@@ -67,7 +68,6 @@
                     <tr><td>Number of iterations: <input type="number" id="iterations" name="iterations" min="1"></td></tr>
                     <tr><td><input type="button" value="submit" onClick="getInputs();"></td></tr>
                 </form>
-                <tr><td id = "data"></td></tr>
             </table>
         </div>
         <script src="{{ url_for('static' ,filename='map.js') }}"></script>

@@ -4,6 +4,8 @@ import json
 from pandas import reset_option
 import random
 import requests
+import copy
+import time
 
 # Classes
 
@@ -99,54 +101,75 @@ class graph:
                 print(y.endNodeId, end =" ")
             print("")
 
-# Tabu Search
-def fitnessFunc(solution, graph):
-    value = 0
-    for n in range(1, len(solution)):
-        n1 = solution[n]
-        n2 = solution[n-1]
-        value += graph.getEdgeFromEdgeNodes(n2, n1).weight # adds up the weight of all the edges in the path
-    
-    return value
-
-def initSolution(graph): # used to randomly generate an solution 
-    solution = []
+#Tabu Search
+carSize = 3
+def initSolution2(graph): # used to randomly generate a solution 
+    solutions = []
     visited = [False] * len(graph.nodes) # will indicate if a node has been visited yet
+    
+    nodePointer = 0
+
 
     for n in graph.nodes:
+        solution = []
         if n.type == 0: # finds a car as the starting point
             solution.append(n.id)
             visited[n.id] = True
-    
-    while(visited.count(visited[0]) != len(visited)): # while the values in the visited list are not all equal
-        avalabile = False 
-        n = random.choice(graph.adjList[solution[-1]]).endNodeId # picks a random node that can be reached form the current last node in the solution
-        if graph.getNodeFromId(n).type == 2: # if the node picked is a end point 
-            start = n -1
-            for x in solution: # check if its start point is already in the list 
-                if x == start:
-                    avalabile = True # if yes we can add the point to the solution 
-                    break
-        else:
-            avalabile = True
+            s = 0
+            while s < carSize and s < (len(graph.nodes)/2)-1:
+                if graph.getNodeFromId(nodePointer).type != 0:
+                    solution.append(nodePointer)
+                    solution.append(nodePointer + 1)
 
-        if visited[n] == False and avalabile: # add the point to the solution 
-            visited[n] = True
-            solution.append(n)
+                    nodePointer += 2
+                    s += 1
+                else:
+                    nodePointer += 1
 
-    return solution
+            solutions.append(solution)
 
-def neighborhood(solution, graph): # returns all the possible swaps for a given solution 
+    return solutions
+
+def neighborhood2(solutions, graph): # returns all the possible swaps for a given solution 
     neighborhood = []
+    neighborhood2 = []
 
-    for x in range(1, len(solution)):
-        for y in range(x + 1, len(solution)):
-            newSolution = solution.copy()
-            newSolution[x], newSolution[y] = newSolution[y], newSolution[x] # swap 2 values 
-            if checkSolution(newSolution, graph) == True: # check if swap is valid
-                neighborhood.append(newSolution) # if swap is good add it to the list 
+    for s in range(len(solutions)):
+        for x in range(1, len(solutions[s])):
+            for y in range(x + 1, len(solutions[s])):
+                newSolution = copy.deepcopy(solutions)
+                newSolution[s][x], newSolution[s][y] = newSolution[s][y], newSolution[s][x] # swap 2 values 
+                if checkSolution(newSolution[s], graph) == True: # check if swap is valid
+                    neighborhood.append(newSolution) # if swap is good add it to the list 
+        
+    for s in range(len(solutions)):
+        for pos in range(1, len(solutions[s])):
+            if graph.getNodeFromId(solutions[s][pos]).type == 1:
+                start = pos
+                end = solutions[s].index(graph.getNodeFromId(solutions[s][pos]+1).id)
+
+                for sol in range(s+1, len(solutions)):
+                    for index in range(1, len(solutions[s])):
+                        if graph.getNodeFromId(solutions[sol][index]).type == 1:
+                            newSolution = copy.deepcopy(solutions)
+                            temp1, temp2 = newSolution[s][start], newSolution[s][end]
+                            newSolution[s][start], newSolution[s][end] = newSolution[sol][index], newSolution[sol][solutions[sol].index(graph.getNodeFromId(solutions[sol][index]+1).id)]
+                            newSolution[sol][index], newSolution[sol][solutions[sol].index(graph.getNodeFromId(solutions[sol][index]+1).id)] = temp1, temp2
+                            neighborhood2.append(newSolution)
+
+
     
-    return neighborhood
+    return neighborhood, neighborhood2
+
+def fitnessFunc2(solutions, graph):
+    value = 0
+    for solution in solutions:
+        for n in range(1, len(solution)):
+            n1 = solution[n]
+            n2 = solution[n-1]
+            value += graph.getEdgeFromEdgeNodes(n2, n1).weight # adds up the weight of all the edges in the path
+    
+    return value
 
 def checkSolution(solution, graph):
     correct = True
@@ -177,30 +200,39 @@ def tabuSearch(graph, iterations, tabuSize, s):
     bestSolution = s
     solution = bestSolution
     tabuList = list()
-    bestCost = fitnessFunc(bestSolution, graph)
+    tabuList2 = list()
+    bestCost = fitnessFunc2(bestSolution, graph)
     counter = 1
 
     while counter <= iterations:
-        neighbours = neighborhood(solution, graph)
+        neighbours, neighbours2 = neighborhood2(solution, graph)
+        # print(neighbours)
         found = False # indicates we found a set of different nodes that are not in the tabu list 
         currentBestSolutionIndex = 0
         currentBestSolution = neighbours[currentBestSolutionIndex]
 
         while not found and currentBestSolutionIndex < len(neighbours) - 1:
             i = 0
+            breaks = False
             while i < len(currentBestSolution):
-                if currentBestSolution[i] != solution[i]: # if the same node position is not equal 
-                    firstNode = currentBestSolution[i]
-                    secondNode = solution[i]
-                    break
-                i = i + 1
+                j = 0
+                while j < len(currentBestSolution[i]):
+                    if currentBestSolution[i][j] != solution[i][j]: # if the same node position is not equal 
+                        firstNode = currentBestSolution[i][j]
+                        secondNode = solution[i][j]
+                        breaks = True
+                        break
+                    j += 1
+                    if breaks:
+                        break
+                i += 1
 
             if [firstNode, secondNode] not in tabuList and [secondNode, firstNode] not in tabuList: # check if the swap is in the tabu list or not 
                 tabuList.append([firstNode, secondNode]) # add the set to the tabuList
                 found = True 
 
                 solution = currentBestSolution
-                cost = fitnessFunc(currentBestSolution, graph)
+                cost = fitnessFunc2(currentBestSolution, graph)
 
                 if cost < bestCost: # checks if the new solution is better than the current best 
                     bestCost = cost
@@ -214,25 +246,52 @@ def tabuSearch(graph, iterations, tabuSize, s):
             tabuList.pop(0) # removes the oldest element in the list
 
         counter = counter + 1
+
+        if len(neighbours2) > 0:
+            found = False
+            size = 0
+            nextSoluiton = neighbours2[size]
+
+            while not found and size < len(neighbours2) - 1:
+                i = 0
+                breaks = False
+                while i < len(nextSoluiton): 
+                    j = 0
+                    pointsFound = 0
+                    while j < len(nextSoluiton[i]):
+                        if nextSoluiton[i][j] != solution[i][j]:
+                            if pointsFound == 0:
+                                start1 = nextSoluiton[i][j]
+                                start2 = solution[i][j]
+                                pointsFound += 1
+                            else:
+                                end1 = nextSoluiton[i][j]
+                                end2 = solution[i][j]
+                                breaks = True
+                                break
+                        j += 1
+                    if breaks == True:
+                        break
+                    i += 1
+
+                if [[start1, end1], [start2, end2]] not in tabuList2 and [[start2, end2], [start1, end1]] not in tabuList2:
+                    tabuList2.append([[start1, end1], [start2, end2]])
+                    found = True 
+
+                    solution = nextSoluiton
+                    cost = fitnessFunc2(solution, graph)
+
+                    if cost < bestCost: # checks if the new solution is better than the current best 
+                        bestCost = cost
+                        bestSolution = solution
+                else:
+                    size += 1 # if nothing was found in with the current swap, go the the next one 
+                    nextSoluiton = neighbours2[size]
+
+                if len(tabuList2) >= tabuSize:
+                    tabuList2.pop(0) # removes the oldest element in the list
     
     return bestSolution, bestCost
-
-# Testing Setup
-pickupNetwork = graph()
-# # enter coords as long, lat
-pickupNetwork.addCar([14.513809277460041, 35.89897453256716]) # car - valletta
-pickupNetwork.addTrip([14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]) # trip - Mosta to imdina
-pickupNetwork.addTrip([14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]) # trip - Marsa to Valletta
-
-def runTabu(graph, iterations):
-    s = initSolution(graph)
-    bestSolution, bestCost = tabuSearch(graph, int(iterations), 7, s)
-
-    return bestSolution
-
-bestSolution = runTabu(pickupNetwork, 5000)
-
-
 
 # Flask setup 
 app = Flask(__name__)
@@ -241,36 +300,36 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-@app.route("/getCars")
-def getCars():
-    cars = []
-    for node in pickupNetwork.nodes:
-        if node.type == 0:
-            cars.append([node.lat, node.long])
-    return Response(json.dumps(cars), mimetype='application/json')
+# @app.route("/getCars")
+# def getCars():
+#     cars = []
+#     for node in pickupNetwork.nodes:
+#         if node.type == 0:
+#             cars.append([node.lat, node.long])
+#     return Response(json.dumps(cars), mimetype='application/json')
 
-@app.route("/getStartPoints")
-def getStartPoints():
-    startPoints = []
-    for node in pickupNetwork.nodes:
-        if node.type == 1:
-            startPoints.append([node.lat, node.long])
-    return Response(json.dumps(startPoints), mimetype='application/json')
+# @app.route("/getStartPoints")
+# def getStartPoints():
+#     startPoints = []
+#     for node in pickupNetwork.nodes:
+#         if node.type == 1:
+#             startPoints.append([node.lat, node.long])
+#     return Response(json.dumps(startPoints), mimetype='application/json')
 
-@app.route("/getEndPoints")
-def getEndPoints():
-    endPoints = []
-    for node in pickupNetwork.nodes:
-        if node.type == 2:
-            endPoints.append([node.lat, node.long])
-    return Response(json.dumps(endPoints), mimetype='application/json')
+# @app.route("/getEndPoints")
+# def getEndPoints():
+#     endPoints = []
+#     for node in pickupNetwork.nodes:
+#         if node.type == 2:
+#             endPoints.append([node.lat, node.long])
+#     return Response(json.dumps(endPoints), mimetype='application/json')
 
-@app.route("/getPolyline")
-def getPolyline():
-    polylines = []
-    for x in range(1, len(bestSolution)):
-        polylines.append(pickupNetwork.getEdgeFromEdgeNodes(bestSolution[x-1], bestSolution[x]).polyLine)
-    return Response(json.dumps(polylines), mimetype='application/json')
+# @app.route("/getPolyline")
+# def getPolyline():
+#     polylines = []
+#     for x in range(1, len(bestSolution)):
+#         polylines.append(pickupNetwork.getEdgeFromEdgeNodes(bestSolution[x-1], bestSolution[x]).polyLine)
+#     return Response(json.dumps(polylines), mimetype='application/json')
 
 @app.route("/loadSet", methods=["Post", "GET"])
 def loadSet():
@@ -293,14 +352,23 @@ def loadSet():
         trips = request.values.getlist('trip['+ str(tripCounter) +'][0][]')
     
     iterations = request.values.get('iter')
-    solution = runTabu(pickupNetwork, iterations)
+    start_time = time.time()
+    solution, cost = tabuSearch(pickupNetwork, int(iterations), 14, initSolution2(pickupNetwork))
+    totalTime = time.time() - start_time
+    print("My program took", totalTime, "to run")
 
-    polylines = []
-    for x in range(1, len(solution)):
-        polylines.append(pickupNetwork.getEdgeFromEdgeNodes(solution[x-1], solution[x]).polyLine)
 
-    return Response(json.dumps(polylines), mimetype='application/json')
-    
+
+    polylines = {}
+    x = 0
+    for x in range(0, len(solution)):
+        polyline = []
+        for y in range(1, len(solution[x])):
+            polyline.append(pickupNetwork.getEdgeFromEdgeNodes(solution[x][y-1], solution[x][y]).polyLine)
+        polylines[x] = polyline
+
+    polylines[x+1] = totalTime
+    return polylines
 
 
 if __name__ == "__main__":
