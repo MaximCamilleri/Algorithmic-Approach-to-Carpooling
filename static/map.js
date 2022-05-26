@@ -69,34 +69,56 @@ function getInputs(){
     var preset = document.getElementById('preset').value;
     var algorithm = document.getElementById('algorithm').value;
     var iterations = document.getElementById('iterations').value;
-    callPreset(preset, algorithm, iterations)
+    var passPerCar = document.getElementById('passPerCar').value;
+    var tabuSize = document.getElementById('tabuSize').value;
+    callPreset(preset, algorithm, iterations, passPerCar, tabuSize)
 }
 
+// preset table
+const selectElement = document.querySelector('.preset');
+console.log(selectElement);
+
+selectElement.addEventListener('change',  (event) => {
+    console.log(event.target.value);
+
+    if(event.target.value == 'preset1'){
+        clearTable()
+        $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table><br>");
+    
+    }else if(event.target.value == 'preset2'){
+        clearTable()
+        $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Mosta</td><td>Mdina</td></tr><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mellieha</td><td>Hamrun</td></tr><tr><td>St Pauls bay</td><td>Mdina</td></tr><tr><td>Valletta</td><td>St Pauls bay</td></tr><tr><td>Qormi</td><td>Humrun</td></tr><tr><td>Siggiewi</td><td>Zurrieq</td></tr><tr><td>Zurrieq</td><td>Siggiewi</td></tr><tr><td>Mellieha</td><td>Paola</td></tr></table><br>");
+
+    }else if(event.target.value == 'preset3'){
+        clearTable()
+
+    }
+})
+
 // picking a preset
-function callPreset(preset, algorithm, iterations){
+function callPreset(preset, algorithm, iterations, passPerCar, tabuSize){
     if(preset == 'preset1'){
-        preset1(iterations)
+        preset1(iterations, passPerCar, tabuSize)
     }else if(preset == 'preset2'){
-        preset2(iterations)
+        preset2(iterations, passPerCar, tabuSize)
     }else if(preset == 'preset3'){
-        preset3(iterations)
+        preset3(iterations, passPerCar, tabuSize)
     }
 }
 
 
 // preset 1
-function preset1(iterations){
+function preset1(iterations, passPerCar, tabuSize){
     clearMap();
     var carLoc = [[14.513809277460041,35.89897453256716]];
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
                 [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
-    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
-    getData(carLoc, trips, iterations)
+    getData(carLoc, trips, iterations, passPerCar, tabuSize)
     
 }
 
 // preset 2
-function preset2(iterations){
+function preset2(iterations, passPerCar, tabuSize, passPerCar, tabuSize){
     clearMap();
     var carLoc = [[14.373826965980765, 35.88552234910637],
                   [14.423235598020154, 35.91419450996914],
@@ -110,25 +132,23 @@ function preset2(iterations){
                 [[14.432798599308622, 35.846482945229674], [14.480448112126183, 35.8215269171298]],   // Siggiewi to Zurrieq
                 [[14.480448112126183, 35.8215269171298], [14.432798599308622, 35.846482945229674]],   // Zurrieq to siggiewi
                 [[14.349747452527506, 35.952589620545496], [14.510671636760655, 35.88200443585789]]]; // Mellieha to Paola
-    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Mosta</td><td>Mdina</td></tr><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mellieha</td><td>Hamrun</td></tr><tr><td>St Pauls bay</td><td>Mdina</td></tr><tr><td>Valletta</td><td>St Pauls bay</td></tr><tr><td>Qormi</td><td>Humrun</td></tr><tr><td>Siggiewi</td><td>Zurrieq</td></tr><tr><td>Zurrieq</td><td>Siggiewi</td></tr><tr><td>Mellieha</td><td>Paola</td></tr></table>");
-    getData(carLoc, trips, iterations)
+    getData(carLoc, trips, iterations, passPerCar, tabuSize)
 }
 
 // preset 3
-function preset3(iterations){
+function preset3(iterations, passPerCar, tabuSize){
     clearMap();
     var carLoc = [[14.373826965980765, 35.88552234910637]];
     
     var trips = [[[14.423235598020154, 35.91419450996914], [14.407218690503381, 35.888194056331706]],
                 [[14.49291350433241, 35.87369410066685], [14.513809277460041, 35.89897453256716]]];
-    $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table>");
-    getData(carLoc, trips, iterations)
+    getData(carLoc, trips, iterations, passPerCar, tabuSize)
 }
 
 // * gets the polyline from the python
 // * draws the pickups and drop offs
 // * draws the cars
-function getData(carLoc, trips, iterations){
+function getData(carLoc, trips, iterations, passPerCar, tabuSize){
     for(var i = 0; i < trips.length; i++){
         var marker = new L.Marker([trips[i][0][1], trips[i][0][0]], {icon: pickup});
         markers.push(marker);
@@ -142,7 +162,7 @@ function getData(carLoc, trips, iterations){
     var r = $.ajax({ 
         url: '/loadSet', 
         type:'post',
-        data: {car:carLoc, trip:trips, iter:iterations}
+        data: {car:carLoc, trip:trips, iter:iterations, pPc: passPerCar, ts:tabuSize}
      });
 
      r.done(function(value){
@@ -174,6 +194,7 @@ function getData(carLoc, trips, iterations){
             map.addLayer(marker);
             cars.push(marker);
         }
+        $("#runTime").text(value[count].toFixed(5) + 's');
      });
 }
 
