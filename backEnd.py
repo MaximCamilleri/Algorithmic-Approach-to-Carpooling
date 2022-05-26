@@ -6,6 +6,7 @@ import random
 import requests
 import copy
 import time
+import math
 
 carSize = 3
 
@@ -138,6 +139,13 @@ def fitnessFuncDuration(solutions, graph):
     
     return value
 
+def fitnessFuncComposite(solutions, graph):
+    distImp = 0.5
+    durImp = 0.5
+
+    return (fitnessFuncDistance(solutions, graph)*distImp) + (fitnessFuncDuration(solutions, graph)*durImp)
+
+
 # General Methods
 
 def checkSolution(solution, graph):
@@ -165,9 +173,274 @@ def checkSolution(solution, graph):
 
     return True
 
+def initSolution(graph): # used to randomly generate a solution 
+    solutions = []
+    visited = [False] * len(graph.nodes) # will indicate if a node has been visited yet
+    
+    nodePointer = 0
+
+
+    for n in graph.nodes:
+        solution = []
+        if n.type == 0: # finds a car as the starting point
+            solution.append(n.id)
+            visited[n.id] = True
+            s = 0
+            while s < carSize and s < (len(graph.nodes)/2)-1:
+                if graph.getNodeFromId(nodePointer).type != 0:
+                    solution.append(nodePointer)
+                    solution.append(nodePointer + 1)
+
+                    nodePointer += 2
+                    s += 1
+                else:
+                    nodePointer += 1
+
+            solutions.append(solution)
+
+    return solutions
+
 # Tabu Search
 
+def neighborhood(solutions, graph): # returns all the possible swaps for a given solution 
+    neighborhood = []
+    neighborhood2 = []
+
+    for s in range(len(solutions)):
+        for x in range(1, len(solutions[s])):
+            for y in range(x + 1, len(solutions[s])):
+                newSolution = copy.deepcopy(solutions)
+                newSolution[s][x], newSolution[s][y] = newSolution[s][y], newSolution[s][x] # swap 2 values 
+                if checkSolution(newSolution[s], graph) == True: # check if swap is valid
+                    neighborhood.append(newSolution) # if swap is good add it to the list 
+        
+    for s in range(len(solutions)):
+        for pos in range(1, len(solutions[s])):
+            if graph.getNodeFromId(solutions[s][pos]).type == 1:
+                start = pos
+                end = solutions[s].index(graph.getNodeFromId(solutions[s][pos]+1).id)
+
+                for sol in range(s+1, len(solutions)):
+                    for index in range(1, len(solutions[s])):
+                        if graph.getNodeFromId(solutions[sol][index]).type == 1:
+                            newSolution = copy.deepcopy(solutions)
+                            temp1, temp2 = newSolution[s][start], newSolution[s][end]
+                            newSolution[s][start], newSolution[s][end] = newSolution[sol][index], newSolution[sol][solutions[sol].index(graph.getNodeFromId(solutions[sol][index]+1).id)]
+                            newSolution[sol][index], newSolution[sol][solutions[sol].index(graph.getNodeFromId(solutions[sol][index]+1).id)] = temp1, temp2
+                            neighborhood2.append(newSolution)
+
+
+    
+    return neighborhood, neighborhood2
+
+def tabuSearch(graph, iterations, tabuSize, s, fitnessFunc):
+    counts = []
+    bestSolution = s
+    solution = bestSolution
+    tabuList = list()
+    tabuList2 = list()
+    bestCost = fitnessFunc(bestSolution, graph)
+    counter = 1
+
+    while counter <= iterations:
+        neighbours, neighbours2 = neighborhood(solution, graph)
+        # print(neighbours)
+        found = False # indicates we found a set of different nodes that are not in the tabu list 
+        currentBestSolutionIndex = 0
+        currentBestSolution = neighbours[currentBestSolutionIndex]
+
+        while not found and currentBestSolutionIndex < len(neighbours) - 1:
+            i = 0
+            breaks = False
+            while i < len(currentBestSolution):
+                j = 0
+                while j < len(currentBestSolution[i]):
+                    if currentBestSolution[i][j] != solution[i][j]: # if the same node position is not equal 
+                        firstNode = currentBestSolution[i][j]
+                        secondNode = solution[i][j]
+                        breaks = True
+                        break
+                    j += 1
+                    if breaks:
+                        break
+                i += 1
+
+            if [firstNode, secondNode] not in tabuList and [secondNode, firstNode] not in tabuList: # check if the swap is in the tabu list or not 
+                tabuList.append([firstNode, secondNode]) # add the set to the tabuList
+                found = True 
+
+                solution = currentBestSolution
+                cost = fitnessFunc(currentBestSolution, graph)
+
+                if cost < bestCost: # checks if the new solution is better than the current best 
+                    bestCost = cost
+                    bestSolution = solution
+            
+            else:
+                currentBestSolutionIndex += 1 # if nothing was found in with the current swap, go the the next one 
+                currentBestSolution = neighbours[currentBestSolutionIndex]
+        
+        if len(tabuList) >= tabuSize:
+            tabuList.pop(0) # removes the oldest element in the list
+
+        counter = counter + 1
+
+        if len(neighbours2) > 0:
+            found = False
+            size = 0
+            nextSoluiton = neighbours2[size]
+
+            while not found and size < len(neighbours2) - 1:
+                i = 0
+                breaks = False
+                while i < len(nextSoluiton): 
+                    j = 0
+                    pointsFound = 0
+                    while j < len(nextSoluiton[i]):
+                        if nextSoluiton[i][j] != solution[i][j]:
+                            if pointsFound == 0:
+                                start1 = nextSoluiton[i][j]
+                                start2 = solution[i][j]
+                                pointsFound += 1
+                            else:
+                                end1 = nextSoluiton[i][j]
+                                end2 = solution[i][j]
+                                breaks = True
+                                break
+                        j += 1
+                    if breaks == True:
+                        break
+                    i += 1
+
+                if [[start1, end1], [start2, end2]] not in tabuList2 and [[start2, end2], [start1, end1]] not in tabuList2:
+                    tabuList2.append([[start1, end1], [start2, end2]])
+                    found = True 
+
+                    solution = nextSoluiton
+                    cost = fitnessFunc(solution, graph)
+
+                    if cost < bestCost: # checks if the new solution is better than the current best 
+                        bestCost = cost
+                        bestSolution = solution
+                else:
+                    size += 1 # if nothing was found in with the current swap, go the the next one 
+                    nextSoluiton = neighbours2[size]
+
+                if len(tabuList2) >= tabuSize:
+                    tabuList2.pop(0) # removes the oldest element in the list
+        counts.append(bestCost)
+    
+    return bestSolution, bestCost, counts
+
 # Genetic Algorithms
+
+class geneticAlgorithm:
+    def __init__(self, graph, ps, fitnessFunc):
+        self.graph = graph
+        self.populationSize = ps
+        self.population = []
+        self.fitness = []
+        self.normFitness = [999] * ps
+        self.fitnessFunc = fitnessFunc
+
+        self.initPopulation()
+        self.normalizeFitness()
+    
+    def initPopulation(self):
+        for x in range(self.populationSize):
+            self.population.append(initSolution(self.graph))
+            self.fitness.append(self.fitnessFunc(self.population[x], self.graph))
+    
+    def normalizeFitness(self):
+        total = 0
+        for i in range(self.populationSize):
+            total += self.fitness[i]
+
+        for i in range(self.populationSize):
+            self.normFitness[i] = self.fitness[i]/total
+    
+    def pickSolution(self):
+        index = 0
+        r = random.uniform(0, 1)
+
+        while r > 0:
+            r = r - self.normFitness[index]
+            index += 1
+        
+        return self.population[index-1]
+    
+    def swap(self, solution):
+        swapped = False
+        while not swapped:
+            rand = bool(random.getrandbits(1))
+            if rand:
+                sol = random.randint(0, (len(solution)-1))
+                n1 = random.randint(1, (len(solution[sol])-1))
+                n2 = random.randint(1, (len(solution[sol])-1))
+
+                newSolution = copy.deepcopy(solution)
+                newSolution[sol][n1], newSolution[sol][n2] = newSolution[sol][n2], newSolution[sol][n1] # swap 2 values
+                swapped = checkSolution(newSolution[sol], self.graph)
+            elif len(solution) > 1:
+                sol = random.randint(0, len(solution)-1)
+                for x in range(1, len(solution[sol])-1):
+                    if self.graph.getNodeFromId(solution[sol][x]).type == 1:
+                        start1 = x
+                        end1 = solution[sol].index(self.graph.getNodeFromId(solution[sol][x]+1).id)
+                sol2 = random.randint(0, len(solution)-1)
+                while sol2 == sol:
+                    sol2 = random.randint(0, len(solution)-1)
+
+                for y in range(1, len(solution[sol2])-1):
+                    if self.graph.getNodeFromId(solution[sol2][y]).type == 1:
+                        start2 = y
+                        end2 = solution[sol2].index(self.graph.getNodeFromId(solution[sol2][y]+1).id)
+
+                newSolution = copy.deepcopy(solution)
+                temp1, temp2 = newSolution[sol][start1], newSolution[sol][end1]
+                newSolution[sol][start1], newSolution[sol][end1] = newSolution[sol2][start2], newSolution[sol2][end2]
+                newSolution[sol2][start2], newSolution[sol2][end2] = temp1, temp2
+                swapped = True
+            
+
+        return newSolution
+    
+    def mutateSolution(self, solution, mutationFactor):
+        newSolution = self.swap(solution)
+        return newSolution
+    
+    def findBestSolution(self):
+        bestSolution = self.population[0]
+        bestCost = self.fitness[0]
+        for i in range(1, self.populationSize):
+            if self.fitness[i] < bestCost:
+                bestCost = self.fitness[i]
+                bestSolution = self.population[i]
+        
+        return bestSolution, bestCost
+        
+    
+    def geneticAlgorithm(self, iterations):
+        costs = []
+        bestSolution, bestCost = self.findBestSolution()
+        costs.append(bestCost)
+        for iter in range(1, iterations):
+            newPopultion = []
+            newFitness = []
+            for s in range(self.populationSize):
+                newPopultion.append(self.mutateSolution(self.pickSolution(), 1))
+                newFitness.append(self.fitnessFunc(newPopultion[s], self.graph))
+            self.population = newPopultion
+            self.fitness = newFitness
+            self.normalizeFitness()
+
+            popBestSolution, popBestCost = self.findBestSolution()
+            if popBestCost < bestCost:
+                bestSolution = popBestSolution
+                bestCost = popBestCost
+            costs.append(bestCost)
+        
+        return bestSolution, bestCost, costs
 
 
 # Flask setup 
@@ -230,15 +503,22 @@ def loadSet():
     
     iterations = request.values.get('iter')
     tabuSize = request.values.get('ts')
+    carSize = request.values.get('pPc')
+    alg = request.values.get('alg')
     print(iterations)
-    tabuSize = 20
-    
-    start_time = time.time()
-    solution, cost = tabuSearch(pickupNetwork, int(iterations), int(tabuSize), initSolution2(pickupNetwork))
-    totalTime = time.time() - start_time
-    print("My program took", totalTime, "to run")
+    print(tabuSize)
+    print(carSize)
+    print(alg)
 
-
+    if int(alg) == 0:
+        start_time = time.time()
+        solution, cost, counts = tabuSearch(pickupNetwork, int(iterations), int(tabuSize), initSolution(pickupNetwork), fitnessFuncDistance)
+        totalTime = time.time() - start_time
+    elif int(alg) == 1:
+        g = geneticAlgorithm(pickupNetwork, 100, fitnessFuncComposite)
+        start_time = time.time()
+        solution, cost, counts = g.geneticAlgorithm(int(tabuSize))
+        totalTime = time.time() - start_time
 
     polylines = {}
     x = 0
