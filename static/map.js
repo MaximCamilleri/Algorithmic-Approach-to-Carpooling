@@ -90,15 +90,12 @@ selectElem.addEventListener('change',  (event) => {
 
             if(event.target.value == 'preset1'){
                 clearTable()
-                $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table><br>");
-            
+                $("#data").append("<h4>Cars:</h4><table class='pre'><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table><br>");
             }else if(event.target.value == 'preset2'){
                 clearTable()
-                $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Mosta</td><td>Mdina</td></tr><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mellieha</td><td>Hamrun</td></tr><tr><td>St Pauls bay</td><td>Mdina</td></tr><tr><td>Valletta</td><td>St Pauls bay</td></tr><tr><td>Qormi</td><td>Humrun</td></tr><tr><td>Siggiewi</td><td>Zurrieq</td></tr><tr><td>Zurrieq</td><td>Siggiewi</td></tr><tr><td>Mellieha</td><td>Paola</td></tr></table><br>");
-
+                $("#data").append("<h4>Cars:</h4><table class='pre'><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Mosta</td><td>Mdina</td></tr><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mellieha</td><td>Hamrun</td></tr><tr><td>St Pauls bay</td><td>Mdina</td></tr><tr><td>Valletta</td><td>St Pauls bay</td></tr><tr><td>Qormi</td><td>Humrun</td></tr><tr><td>Siggiewi</td><td>Zurrieq</td></tr><tr><td>Zurrieq</td><td>Siggiewi</td></tr><tr><td>Mellieha</td><td>Paola</td></tr></table><br>");
             }else if(event.target.value == 'preset3'){
                 clearTable()
-
             }
         })
     }else if(event.target.value == 1){
@@ -112,11 +109,11 @@ selectElem.addEventListener('change',  (event) => {
 
             if(event.target.value == 'preset1'){
                 clearTable()
-                $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table><br>");
+                $("#data").append("<h4>Cars:</h4><table class='pre'><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Valletta</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mosta</td><td>Imdina</td></tr></table><br>");
             
             }else if(event.target.value == 'preset2'){
                 clearTable()
-                $("#data").append("<h4>Cars:</h4><table><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Rabat</td></tr><tr><td>2</td><td>Mosta</td></tr><tr><td>3</td><td>Hamrun</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Mosta</td><td>Mdina</td></tr><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mellieha</td><td>Hamrun</td></tr><tr><td>St Pauls bay</td><td>Mdina</td></tr><tr><td>Valletta</td><td>St Pauls bay</td></tr><tr><td>Qormi</td><td>Humrun</td></tr><tr><td>Siggiewi</td><td>Zurrieq</td></tr><tr><td>Zurrieq</td><td>Siggiewi</td></tr><tr><td>Mellieha</td><td>Paola</td></tr></table><br>");
+                $("#data").append("<h4>Cars:</h4><table class='pre'><th>Car Id</th><th>Car Location</th><tr><td>1</td><td>Rabat</td></tr><tr><td>2</td><td>Mosta</td></tr><tr><td>3</td><td>Hamrun</td></tr></table><h4>Trips:</h4><table><th>Start Points</th><th>End Points</th><tr><td>Mosta</td><td>Mdina</td></tr><tr><td>Marsa</td><td>Valletta</td></tr><tr><td>Mellieha</td><td>Hamrun</td></tr><tr><td>St Pauls bay</td><td>Mdina</td></tr><tr><td>Valletta</td><td>St Pauls bay</td></tr><tr><td>Qormi</td><td>Humrun</td></tr><tr><td>Siggiewi</td><td>Zurrieq</td></tr><tr><td>Zurrieq</td><td>Siggiewi</td></tr><tr><td>Mellieha</td><td>Paola</td></tr></table><br>");
 
             }else if(event.target.value == 'preset3'){
                 clearTable()
