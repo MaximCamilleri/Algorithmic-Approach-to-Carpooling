@@ -450,44 +450,13 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-# @app.route("/getCars")
-# def getCars():
-#     cars = []
-#     for node in pickupNetwork.nodes:
-#         if node.type == 0:
-#             cars.append([node.lat, node.long])
-#     return Response(json.dumps(cars), mimetype='application/json')
-
-# @app.route("/getStartPoints")
-# def getStartPoints():
-#     startPoints = []
-#     for node in pickupNetwork.nodes:
-#         if node.type == 1:
-#             startPoints.append([node.lat, node.long])
-#     return Response(json.dumps(startPoints), mimetype='application/json')
-
-# @app.route("/getEndPoints")
-# def getEndPoints():
-#     endPoints = []
-#     for node in pickupNetwork.nodes:
-#         if node.type == 2:
-#             endPoints.append([node.lat, node.long])
-#     return Response(json.dumps(endPoints), mimetype='application/json')
-
-# @app.route("/getPolyline")
-# def getPolyline():
-#     polylines = []
-#     for x in range(1, len(bestSolution)):
-#         polylines.append(pickupNetwork.getEdgeFromEdgeNodes(bestSolution[x-1], bestSolution[x]).polyLine)
-#     return Response(json.dumps(polylines), mimetype='application/json')
-
 @app.route("/loadSet", methods=["Post", "GET"])
 def loadSet():
-    pickupNetwork = graph()
+    pickupNetwork = graph() # create graph
 
     cars = request.values.getlist('car[0][]')
     carCounter = 0
-    while cars:
+    while cars: # initialize cars 
         cars = request.values.getlist('car['+ str(carCounter) +'][]')
         if cars:
             pickupNetwork.addCar([cars[0], cars[1]])
@@ -495,26 +464,26 @@ def loadSet():
 
     trips = request.values.getlist('trip[0][0][]')
     tripCounter = 0
-    while trips:
+    while trips: # initialize trips 
         trips2 = request.values.getlist('trip['+ str(tripCounter) +'][1][]')
         pickupNetwork.addTrip([trips[0], trips[1]], [trips2[0], trips2[1]])
         tripCounter += 1
         trips = request.values.getlist('trip['+ str(tripCounter) +'][0][]')
     
-    iterations = request.values.get('iter')
-    tabuSize = request.values.get('ts')
-    carSize = request.values.get('pPc')
-    alg = request.values.get('alg')
+    iterations = request.values.get('iter') # get iterations form site 
+    tabuSize = request.values.get('ts') # get tabu size/ pop size from site
+    carSize = request.values.get('pPc') # get Car size form site
+    alg = request.values.get('alg') # get algorithm form site
     print(iterations)
     print(tabuSize)
     print(carSize)
     print(alg)
 
-    if int(alg) == 0:
-        start_time = time.time()
+    if int(alg) == 0: # if tabu search 
+        start_time = time.time() # take time to see how long algorithm runs for
         solution, cost, counts = tabuSearch(pickupNetwork, int(iterations), int(tabuSize), initSolution(pickupNetwork), fitnessFuncDistance)
-        totalTime = time.time() - start_time
-    elif int(alg) == 1:
+        totalTime = time.time() - start_time # stop time
+    elif int(alg) == 1: # if genetic algorithm
         g = geneticAlgorithm(pickupNetwork, 100, fitnessFuncComposite)
         start_time = time.time()
         solution, cost, counts = g.geneticAlgorithm(int(tabuSize))
@@ -522,14 +491,14 @@ def loadSet():
 
     polylines = {}
     x = 0
-    for x in range(0, len(solution)):
+    for x in range(0, len(solution)): # calculate all the polylines to be printed on the website
         polyline = []
         for y in range(1, len(solution[x])):
             polyline.append(pickupNetwork.getEdgeFromEdgeNodes(solution[x][y-1], solution[x][y]).polyLine)
         polylines[x] = polyline
 
     polylines[x+1] = totalTime
-    return polylines
+    return polylines # return the polylines to the JS
 
 
 if __name__ == "__main__":

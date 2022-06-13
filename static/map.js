@@ -226,7 +226,6 @@ function getData(carLoc, trips, iterations, passPerCar, tabuSize, algorithm){
         markers.push(marker);
         map.addLayer(marker);
     }
-    console.log(algorithm);
     var r = $.ajax({ 
         url: '/loadSet', 
         type:'post',
@@ -247,23 +246,32 @@ function getData(carLoc, trips, iterations, passPerCar, tabuSize, algorithm){
             }
             polyPoints.push(p);
         }
-
-        console.log(polyPoints);
-        
-
-        var timings = Array(polyPoints.length).fill(700)
+        var carsTest = new Array();
         for(var i = 0; i < carLoc.length; i++){
+            var timings = Array(polyPoints[i].length).fill(700)
             var degree = getHeading(polyPoints[i]);
+            console.log(polyPoints[i]);
             var marker = L.Marker.movingMarker(polyPoints[i], timings, {
                 autostart: false,
                 rotation: degree,
             });
             marker.setIcon(car);
             map.addLayer(marker);
-            cars.push(marker);
+            carsTest.push(marker);   
         }
         $("#runTime").text(value[count].toFixed(5) + 's');
+
+        for(var i = 0; i < carsTest.length; i++){
+            startCar(carsTest[i], polyPoints[i])
+        }
      });
+}
+
+function startCar(car, polyPoints){
+    car.start();
+    setInterval( function() {
+        car.options.rotation = getHeading(polyPoints);
+    }, 700);
 }
 
 // cleans the environment for another preset
@@ -301,12 +309,12 @@ function moveCar(){
     cars[0].start();
     
     setInterval( function() {
-        cars[0].options.rotation = getHeading(polyPoints);
+        cars[0].options.rotation = getHeading(polyPoints[0]);
     }, 700);
 }
 
 function getHeading(polyPoints){
-    var theta = Math.atan2(polyPoints[nextPolyPoint][1] - polyPoints[nextPolyPoint-1][1], polyPoints[nextPolyPoint][0] - polyPoints[nextPolyPoint-1][0]) * 180 / Math.PI;;
+    var theta = Math.atan2(polyPoints[nextPolyPoint][1] - polyPoints[nextPolyPoint-1][1], polyPoints[nextPolyPoint][0] - polyPoints[nextPolyPoint-1][0]) * 180 / Math.PI;
     nextPolyPoint += 1;
     return theta;
 }
@@ -353,21 +361,7 @@ function getEndPoints(){
     }
 }
 
-function getPolyline(){
-    polyPoints = [];
-    var value = JSON.parse($.ajax({ 
-        url: '/getPolyline', 
-        async: false
-     }).responseText);
-     for(var i = 0; i < value.length; i++){
-        var l = polyline.decode(value[i])
-        L.polyline(l, {color: 'red'}).addTo(map);
-        for(var j = 0; j < l.length; j++){
-            polyPoints.push(l[j]);
-        }
-    }
-    console.log(polyPoints);
-}
+
 
 function start(){
     getPolyline();
